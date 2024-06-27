@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { PasswordService } from './password.service';
 import { JwtService } from '@nestjs/jwt';
@@ -13,7 +13,7 @@ export class AuthService {
 	) {}
 
 	async signUp(email: string, password: string, name: string) {
-		var user = await this.userService.findByEmail(email);
+		const user = await this.userService.findByEmail(email);
 		
 		if (user) {
 			throw new BadRequestException({ type: 'email-exsist' })
@@ -22,13 +22,29 @@ export class AuthService {
 		var salt = this.passwordService.getSalt();
 		var hash = this.passwordService.getHash(password, salt);
 
-		const newUser = await this.userService.create(email, name, hash, salt);
+		var newUser = await this.userService.create(email, name, hash, salt);
 
-		const payload = await this.jwtSerice.signAsync({ id: newUser.id, email: newUser.email, name: newUser.name });
+		var payload = await this.jwtSerice.signAsync({ id: newUser.id, email: newUser.email, name: newUser.name });
 
 		return { payload };
 	}
 
-	signIn(email: string, password: string) {}
+	async signIn(email: string, password: string) {
+		var user = await this.userService.findByEmail(email);
+		
+		if (!user) {
+			throw new UnauthorizedException();
+		}
+
+		var hash = this.passwordService.getHash(password, user.salt);
+
+		if (hash !== user.hash) {
+			throw new UnauthorizedException();
+		}
+
+		var payload = await this.jwtSerice.signAsync({ id: user.id, email: user.email, name: user.name })
+
+		return { payload }
+	}
 
 }
