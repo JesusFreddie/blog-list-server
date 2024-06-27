@@ -1,4 +1,19 @@
 import { Injectable } from '@nestjs/common';
+import { Response } from 'express';
 
 @Injectable()
-export class CookieService {}
+export class CookieService {
+  static TokenKey = 'access-token';
+
+  setToken(res: Response, token: string) {
+    res.cookie(CookieService.TokenKey, token, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+  }
+
+  removeToken(res: Response) {
+		res.clearCookie(CookieService.TokenKey)
+	}
+	
+}
