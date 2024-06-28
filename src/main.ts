@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
 	const _PORT = 3000;
@@ -16,7 +17,8 @@ async function bootstrap() {
 	SwaggerModule.setup('api', app, document)
   
 	app.use(cookieParser())
-
+	app.useGlobalPipes(new ValidationPipe())
+	
   await app.listen(_PORT, () => {
 		console.log(`Server started on port ${_PORT}`);
 	});
